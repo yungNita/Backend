@@ -15,7 +15,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanc
 Route::middleware('auth:sanctum')->group(function () {
 
     // -------------------- Admin Only --------------------
-    // Route::middleware('role:admin')->group(function () {
+    
         // Manage Users (CRUD admins + staff)
         Route::get('/users', [UserController::class, 'index']);
         Route::get('/users/{id}', [UserController::class, 'show']);
@@ -28,14 +28,12 @@ Route::middleware('auth:sanctum')->group(function () {
     
 
     // -------------------- Staff Only --------------------
-    // Route::middleware('role:staff')->group(function () {
         Route::get('/staff/dashboard', [StaffDashboardController::class, 'dashboard']);
-    // });
 
     // -------------------- Shared (Admin + Staff) --------------------
-    Route::get('/me', function (Request $request) {
-        return $request->user();
-    });
+        Route::get('/me', function (Request $request) {
+            return $request->user();
+        });
 });
 
 

@@ -33,7 +33,7 @@ class VisitRequestController extends Controller
         $visit->visit_phNum = $request->input('visit_phNum');
         $visit->visit_institute = $request->input('visit_institute');
         $visit->visit_purpose = $request->input('visit_purpose');
-        $visit->visit_amount = $request->input('visit_amount');
+        $visit->number_of_visitors = $request->input('number_of_visitors');
         $visit->status = 'pending'; // Default status when creating a new visit request
         $visit->save();
         return $visit;
@@ -94,7 +94,27 @@ class VisitRequestController extends Controller
         else{
             return response()->json([
                 'status' => 'success',
-                'message' => 'Visit request deleted successfully'
+                'message' => 'Visit request deleted successfully',
+                'data' => $visit = Visit_Request::onlyTrashed()->get(),
+            ], 200);
+        }
+    }
+
+    public function restore(string $visit_id)
+    {
+        $visit = Visit_Request::withTrashed()->find($visit_id);
+        if (!$visit) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Visit request not found'
+            ], 404);
+        }
+        else{
+            $visit->restore();
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Visit request restored successfully, Here are all visit requests:',
+                'data' => $visit = Visit_Request::all(),
             ], 200);
         }
     }

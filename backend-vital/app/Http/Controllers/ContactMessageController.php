@@ -39,10 +39,10 @@ class ContactMessageController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(string $message_id)
     {
         //
-        $message = Contact_Message::find($id);
+        $message = Contact_Message::find($message_id);
         if (!$message) {
             return response()->json([
                 'status' => 'error',
@@ -60,14 +60,38 @@ class ContactMessageController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(string $message_id)
     {
         //
-        $message = Contact_Message::find($id);
+        $message = Contact_Message::find($message_id);
         $message->delete();
+        if (!$message) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Message not found'
+            ], 404);
+        }
         return response()->json([
             'status' => 'success',
-            'message' => 'Message deleted successfully'
+            'message' => 'Message deleted successfully, Here are all deleted messages:',
+            'data' => Contact_Message::onlyTrashed()->get()
+        ], 200);
+    }
+
+    public function restore(string $message_id)
+    {
+        $message = Contact_Message::withTrashed()->find($message_id);
+        if (!$message) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Message not found'
+            ], 404);
+        }
+        $message->restore();
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Message restored successfully, Here are all messages:',
+            'data' => $message = Contact_Message::all()
         ], 200);
     }
 }

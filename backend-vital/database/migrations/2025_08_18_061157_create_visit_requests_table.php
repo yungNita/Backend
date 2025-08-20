@@ -19,8 +19,9 @@ return new class extends Migration
             $table->string('visit_phNum');
             $table->string('visit_institute');
             $table->string('visit_purpose');
-            $table->integer('visit_amount');
+            $table->integer('number_of_visitors');
             $table->enum('status', ['pending', 'approved', 'rejected', 'completed'])->default('pending');
+            $table->timestamp('deleted_at')->nullable();
             $table->timestamps();
         });
     }

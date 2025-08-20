@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('message_email');
             $table->string('message_phNum');
             $table->text('message_detail');
+            $table->timestamp('deleted_at')->nullable();
             $table->timestamps();
         });
     }

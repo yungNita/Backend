@@ -99,8 +99,26 @@ class ProjectProposalController extends Controller
         else{
             return response() -> json([
                 'status' => 'success',
-                'message' => 'Project proposal deleted successfully'
+                'message' => 'Project proposal deleted successfully, Here are all deleted project proposals:',
+                'data' => $proposal = Project_Proposal::onlyTrashed()->get()
             ], 200);
         }
+    }
+    public function restore(string $project_id)
+    {
+        //restore a specific project proposal by ID
+        $proposal = Project_Proposal::withTrashed()->find($project_id);
+        if (!$proposal) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Project proposal not found'
+            ], 404);
+        }
+        $proposal->restore();
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Project proposal restored successfully, Here are all project proposals:',
+            'data' => $proposal = Project_Proposal::all()
+        ], 200);
     }
 }

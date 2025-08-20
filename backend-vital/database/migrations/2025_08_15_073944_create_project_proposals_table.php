@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('project_detail');
             $table->string('project_file')->nullable();
             $table->enum('status', ['pending','approved','rejected','completed'])->default('pending');
+            $table->timestamp('deleted_at')->nullable();
             $table->timestamps();
         });
     }

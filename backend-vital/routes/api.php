@@ -48,9 +48,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::resource('contact-messages', ContactMessageController::class);
         Route::get('contact-messages/{message_id}/restore', [ContactMessageController::class, 'restore'])->name('contact-messages.restore');
 
+        Route::resource('post-jobs', PostJobController::class);
+        Route::get('post-jobs/{job_id}/restore', [PostJobController::class, 'restore'])->name('post-jobs.restore');
+
+
         
 });
 
 
-Route::resource('post-jobs', PostJobController::class);
-Route::get('post-jobs/{job_id}/restore', [PostJobController::class, 'restore'])->name('post-jobs.restore');

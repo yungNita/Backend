@@ -30,10 +30,20 @@ Route::middleware('auth:sanctum')->group(function () {
     // -------------------- Staff Only --------------------
         Route::get('/staff/dashboard', [StaffDashboardController::class, 'dashboard']);
 
+
     // -------------------- Shared (Admin + Staff) --------------------
         Route::get('/me', function (Request $request) {
             return $request->user();
         });
+
+
+     // --------------------------  Media  --------------------------
+        Route::get('/media{category}', [MediaController::class, 'index']);
+        Route::get('/media/show/{id}', [MediaController::class, 'show']);
+        Route::post('/media', [MediaController::class, 'store']);
+        Route::patch('/media{id}', [MediaController::class, 'update']);
+        Route::delete('/media{id}', [MediaController::class, 'destroy']);
+
 });
 
 

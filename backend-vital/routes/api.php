@@ -38,11 +38,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/me', function (Request $request) {
             return $request->user();
         });
+
+
+    // -------------------- project - visit - contact --------------------
+        Route::resource('project-proposals', ProjectProposalController::class);
+        Route::get('project-proposals/{project_id}/restore', [ProjectProposalController::class, 'restore'])->name('project-proposals.restore');
+        Route::resource('visit-requests', VisitRequestController::class);
+        Route::get('visit-requests/{visit_id}/restore', [VisitRequestController::class, 'restore'])->name('visit-requests.restore');
+        Route::resource('contact-messages', ContactMessageController::class);
+        Route::get('contact-messages/{message_id}/restore', [ContactMessageController::class, 'restore'])->name('contact-messages.restore');
+
+        
 });
 
-Route::resource('project-proposals', ProjectProposalController::class);
-Route::get('project-proposals/{project_id}/restore', [ProjectProposalController::class, 'restore'])->name('project-proposals.restore');
-Route::resource('visit-requests', VisitRequestController::class);
-Route::get('visit-requests/{visit_id}/restore', [VisitRequestController::class, 'restore'])->name('visit-requests.restore');
-Route::resource('contact-messages', ContactMessageController::class);
-Route::get('contact-messages/{message_id}/restore', [ContactMessageController::class, 'restore'])->name('contact-messages.restore');

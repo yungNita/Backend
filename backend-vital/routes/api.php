@@ -51,3 +51,6 @@ Route::middleware('auth:sanctum')->group(function () {
         
 });
 
+
+Route::resource('post-jobs', PostJobController::class);
+Route::get('post-jobs/{job_id}/restore', [PostJobController::class, 'restore'])->name('post-jobs.restore');

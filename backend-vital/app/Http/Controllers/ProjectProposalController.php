@@ -34,6 +34,7 @@ class ProjectProposalController extends Controller
         $proposal->project_phNum = $request->input('project_phNum');
         $proposal->project_projectName = $request->input('project_projectName');
         $proposal->project_detail = $request->input('project_detail');
+        // $proposal->project_updated_by = $request->input('project_updated_by');
         $proposal->status = 'pending'; // Default status when creating a new proposal
         // Handle file upload if a file is provided
         if ($request->hasFile('project_file')) {
@@ -76,9 +77,21 @@ class ProjectProposalController extends Controller
         $request->validate([
             'status' => 'required|in:pending,approved,rejected,completed'
         ]);
-
         $proposal = Project_Proposal::findOrFail($project_id);
-        $proposal->update($request->only('status'));
+        if(!$proposal){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Project proposal not found'
+            ], 404);
+        }
+        else{
+            $proposal->update($request->only('status', 'project_updated_by'));
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Project proposal updated successfully',
+                'data' => $proposal
+            ], 200);
+        }
         return $proposal;
     }
 

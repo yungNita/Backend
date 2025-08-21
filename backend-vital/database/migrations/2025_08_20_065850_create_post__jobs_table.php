@@ -22,15 +22,14 @@ return new class extends Migration
             $table->enum('employment_type', ['employee', 'intern', 'volunteer', 'young professional'])->default('employee');
             $table->string('department');
             $table->string('company');
-            $table->timestamp('published_at')->default(now());
-            $table->foreignId('published_by')->constrained('users', 'id')->onUpdate('cascade');
-            $table->timestamp('job_deleted_at')->nullable();
+            $table->dateTime('published_at')->nullable()->default(null);
+            $table->foreignId('published_by')->nullable()->constrained('users', 'id')->onUpdate('cascade')->onDelete('set null');
             $table->softDeletes();
-            $table->timestamp('job_updated_at')->nullable();
-            $table->foreignId('job_updated_by')->nullable()->constrained('users', 'id')->onUpdate('cascade');
+            $table->foreignId('job_updated_by')->nullable()->constrained('users', 'id')->onUpdate('cascade')->onDelete('set null');
             $table->enum('status', ['draft', 'published', 'scheduled', 'closed'])->default('draft');
-            $table->timestamp('scheduled_at')->nullable();
-            $table->timestamp('closed_at')->nullable();
+            $table->dateTime('scheduled_at')->nullable();
+            $table->dateTime('closed_at')->nullable();
+
             $table->timestamps();
         });
     }

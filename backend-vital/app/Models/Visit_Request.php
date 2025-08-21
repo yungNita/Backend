@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Support\Facades\Auth;
 class Visit_Request extends Model
 {
     //
@@ -18,7 +18,16 @@ class Visit_Request extends Model
         'visit_phNum',
         'visit_institute',
         'visit_purpose',
+        'visit_updated_by',
         'number_of_visitors',
         'status',
     ];
+    public static function boot()
+    {
+        parent::boot();
+
+        static::updating(function ($model) {
+            $model->visit_updated_by = Auth::id();
+        });
+    }
 }

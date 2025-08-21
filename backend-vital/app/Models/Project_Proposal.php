@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Support\Facades\Auth;
 class Project_Proposal extends Model
 {
     //
@@ -18,6 +18,15 @@ class Project_Proposal extends Model
         'project_phNum',
         'project_projectName',
         'project_detail',
+        'project_updated_by',
+        'project_file',
         'status',
     ];
+    public static function boot(){
+        parent::boot();
+
+        static::updating(function ($model) {
+            $model->project_updated_by = Auth::id();
+        });
+    }
 }

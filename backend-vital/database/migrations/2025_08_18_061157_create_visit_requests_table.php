@@ -21,7 +21,8 @@ return new class extends Migration
             $table->string('visit_purpose');
             $table->integer('number_of_visitors');
             $table->enum('status', ['pending', 'approved', 'rejected', 'completed'])->default('pending');
-            $table->timestamp('deleted_at')->nullable();
+            $table->foreignId('visit_updated_by')->nullable()->constrained('users', 'id')->onUpdate('cascade');
+            $table->softDeletes();
             $table->timestamps();
         });
     }

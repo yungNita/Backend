@@ -2,37 +2,48 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\MediaArticle;
 use Illuminate\Http\Request;
-use App\Model\Media;
-use Illuminate\Support\Facades\Auth;
 
 class MediaArticleController extends Controller
 {
     public function index()
     {
-        return MediaArticle::with(['created_by', 'modified_by'])->get();
-    }
-
-    public function show($id)
-    {
-        //
+        $articles = MediaArticle::with('media')->latest()->get();
+        return response()->json($articles);
     }
 
     public function store(Request $request)
     {
-        //
+        $article = MediaArticle::create($request->only(['media_id', 'detail']));
+
+        return response()->json([
+            'message' => 'Article created successfully',
+            'data' => $article
+        ]);
     }
 
-    public function update(Request $request, $id)
+    public function show(MediaArticle $mediaArticle)
     {
-        //
+        return response()->json($mediaArticle->load('media', 'image'));
     }
 
-    public function destroy($id)
+    public function update(Request $request, MediaArticle $mediaArticle)
     {
-        $data = MediaLink::findOrFail($id);
-        $data->delete();
+        $mediaArticle->update($request->only(['detail']));
 
-        return response()->json(['message' => 'Delete Successfully']);
+        return response()->json([
+            'message' => 'Article updated successfully',
+            'data' => $mediaArticle
+        ]);
+    }
+
+    public function destroy(MediaArticle $mediaArticle)
+    {
+        $mediaArticle->delete();
+
+        return response()->json([
+            'message' => 'Article deleted successfully'
+        ]);
     }
 }

@@ -9,15 +9,10 @@ class MediaArticle extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = [ 'media_id', 'detail']
+    protected $fillable = ['media_id', 'detail'];
 
     public function media()
     {
-        return $this->belongTo(Media::class);
-    }
-
-    public function image()
-    {
-        return $this->hasMany(MediaImage::class);
+        return $this->belongsTo(Media::class);
     }
 }

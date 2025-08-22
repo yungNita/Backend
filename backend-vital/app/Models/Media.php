@@ -6,6 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
  use Illuminate\Database\Eloquent\SoftDeletes;
 
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 class Media extends Model
 {
     use SoftDeletes;
@@ -16,36 +21,49 @@ class Media extends Model
         'thumbnail_img',
         'source',
         'status',
-        'scheduled_at'
-        'published_at'
+        'url',
+        'article_detail', 
+        'scheduled_at',
+        'published_at',
         'created_by',
         'created_by_username',
         'modified_by',
         'modified_by_username',
-    ]
+    ];
 
+    protected $dates = [
+        'published_at',
+        'scheduled_at',
+        'deleted_at',
+    ];
+
+    // owner of the media
     public function user()
     {
         return $this->belongsTo(User::class);
-    }   
-
-    public function event() 
-    {
-        return $this->hasOne(UpcomingEvent::class);
     }
 
-    public function images() 
+    // admin who created
+    public function creator()
     {
-        return $this->hasMany(MediaImage::class);
+        return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function links()
+    // admin who modified
+    public function modifier()
     {
-        return $this->hasMany(MediaLink::class);
+        return $this->belongsTo(User::class, 'modified_by');
     }
 
-    public function article() 
+    // one-to-one relations
+    public function event()
     {
-        return $this->hasOne(MediaArticle::class);
+        return $this->hasOne(UpcomingEvent::class, 'media_id');
+    }
+
+    // one-to-many
+    public function images()
+    {
+        return $this->hasMany(MediaImage::class, 'media_id');
     }
 }

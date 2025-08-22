@@ -3,19 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+// use Illuminate\Database\Eloquent\SoftDeletes;
 
 class MediaLink extends Model
 {
-    use SoftDeletes;
+    // use SoftDeletes;
 
-    protected $fillable = [
-        'media_id',
-        'url',
-    ]
+    protected $fillable = ['media_id', 'url'];
 
     public function media()
     {
-        return $this->belongTo(Media::class);
+        return $this->belongsTo(Media::class);
     }
 }

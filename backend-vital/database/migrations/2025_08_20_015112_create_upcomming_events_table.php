@@ -10,16 +10,18 @@ return new class extends Migration
     {
         Schema::create('upcoming_events', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('media_id')->constrained('media')->onDelete('cascade');
             $table->string('title');
             $table->text('detail');
+
             $table->dateTime('start_date');
             $table->dateTime('end_date');
+
             $table->string('location');
             $table->integer('num_participate')->nullable();
             $table->string('organizer')->nullable();
             $table->string('contact')->nullable();
-            $table->timestamps('expired_at');
-            $table->enum('timeline', ['upcoming', 'expired'])->default('upcoming');
+
             $table->timestamps();
         });
     }

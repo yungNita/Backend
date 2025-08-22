@@ -8,16 +8,17 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('media_article', function (Blueprint $table) {
+        Schema::create('media_images', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('media_id')->constrained('media')->onDelete('cascade');
-            $table->longText('detail');
+            $table->foreignId('media_id')->nullable()->constrained('media')->onDelete('cascade');
+            $table->string('path');
+            $table->softDeletes();
             $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('media_article');
+        Schema::dropIfExists('media_images');
     }
 };

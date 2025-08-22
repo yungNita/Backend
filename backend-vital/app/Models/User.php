@@ -23,4 +23,9 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
+    public function media()
+    {
+        return $this->hasMany(Media::class);
+    }
 }

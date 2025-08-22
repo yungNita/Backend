@@ -2,70 +2,200 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Media;
+use App\Models\MediaImage;
 use Illuminate\Http\Request;
-use App\Model\Media;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
+use Intervention\Image\Facades\Image;
+use Illuminate\Support\Facades\Storage;
 
 class MediaController extends Controller
 {
-    // List all the media categories
-    public function index($category)
+    // -------------------------
+    // List active media
+    // -------------------------
+    public function index()
     {
-        $media = Media::where('category', $category)
-                -> with(['links', 'article', 'images', 'event'])
-                -> get();
+        $media = Media::latest()->get();
         return response()->json($media);
     }
 
-    // List media by id
+    // -------------------------
+    // List archived media
+    // -------------------------
+    public function archived()
+    {
+        $archived = Media::onlyTrashed()->latest()->get();
+        return response()->json($archived);
+    }
+
+    // -------------------------
+    // Get media by ID (include trashed)
+    // -------------------------
     public function show($id)
     {
-        $media = Medi::with(['links', 'article', 'images', 'event'])->findOrFail($id);
+        $media = Media::withTrashed()->with('images')->findOrFail($id);
         return response()->json($media);
     }
 
-    // Creat media  
+    // -------------------------
+    // Get media by category
+    // -------------------------
+    public function getByCategory($category)
+    {
+        $media = Media::where('category', $category)->latest()->get();
+        return response()->json($media);
+    }
+
+    // -------------------------
+    // Create new media with multiple images
+    // -------------------------
     public function store(Request $request)
     {
-        $media = Media::create([
-            'category' => $request->category,
-            'title' => $request->title,
-            'thumbnail_img' => $request->thumbnail_img,
-             'source' => $request->source,
-             'status' => 'draft',
-             'published_at' => $request->published_at,
-             'created_by' => auth()->id(),
-             'created_by_username' => auth()->user()->username,
-        ])
+        $admin = Auth::user();
 
-        return response()->json($['message' => 'Create Media successfully', 'media' => $media], 201);
+        $validated = $request->validate([
+            'category' => 'required|in:activity,gallery,knowledge,article,upcoming_event',
+            'title' => 'required|string|max:255',
+            'thumbnail_img' => 'image|mimes:jpg,jpeg,png|max:2048',
+            'status' => 'sometimes|in:draft,schedule,published',
+            'scheduled_at' => 'nullable|required_if:status,schedule|date_format:Y-m-d H:i',
+        ]);
+
+        // Upload thumbnail if exists
+        if ($request->hasFile('thumbnail_img')) {
+            $path = $request->file('thumbnail_img')->store('thumbnail_imgs', 'public');
+            $validated['thumbnail_img'] = $path;
+        }
+
+        // Create media
+        $media = Media::create([
+            'category'              => $validated['category'],
+            'title'                 => $validated['title'],
+            'thumbnail_img'         => $validated['thumbnail_img'],
+            'source'                => $request->source ?? 'facebook',
+            'url'                   => $request->url,
+            'article_detail'        => $request->article_detail ?? null,
+            'status'                => $validated['status'] ?? 'draft',
+            'published_at'          => $validated['status'] === 'published' ? Carbon::now() : null,
+            'scheduled_at'          => $validated['status'] === 'schedule' ? $validated['scheduled_at'] : null,
+            'created_by'            => $admin->id,
+            'created_by_username'   => $admin->username,
+            'modified_by'           => $admin->id,
+            'modified_by_username'  => $admin->username,
+        ]);
+
+        return response()->json([
+            'message' => 'Media created successfully',
+            'data' => $media
+        ]);
     }
 
-    // update media by id
+    // -------------------------
+    // Update media and optionally add more images
+    // -------------------------
     public function update(Request $request, $id)
     {
-        $media = Media::findOrFail($id);
-        $media->update(array_merge($request->all(), [
-            'modified_by' => auth()->id(),
-            'modified_by_username' => auth()->user()->username,
-        ]))
+        $media = Media::withTrashed()->findOrFail($id);
+        $admin = Auth::user();
 
-        return response()->json(['message' => 'Updated successfully', 'user' => $user]);
+        $validated = $request->validate([
+            'category' => 'sometimes|in:activity,gallery,knowledge,article,upcoming_event',
+            'title' => 'sometimes|string|max:255',
+            'thumbnail_img' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'images.*' => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:5120',
+        ]);
+
+        if ($request->hasFile('thumbnail_img')) {
+            $path = $request->file('thumbnail_img')->store('thumbnail_imgs', 'public');
+            $validated['thumbnail_img'] = $path;
+        }
+
+        $media->update([
+            'category' => $validated['category'] ?? $media->category,
+            'title' => $validated['title'] ?? $media->title,
+            'thumbnail_img' => $validated['thumbnail_img'] ?? $media->thumbnail_img,
+            'source' => $request->source ?? $media->source,
+            'url' => $request->url ?? $media->url,
+            'article_detail' => $request->article_detail ?? $media->article_detail,
+            'modified_by' => $admin->id,
+            'modified_by_username' => $admin->username,
+        ]);
+
+        return response()->json([
+            'message' => 'Media updated successfully',
+            'data' => $media->load('images')
+        ]);
     }
 
-    // Update Status: draff, schedule, published, and archived
-    public function updateStatus(Request $request, Media $media)
+    
+    // -------------------------
+    // Update media status
+    // -------------------------
+    public function updateStatus(Request $request, $id)
     {
-        $status = $request->status  
+        $media = Media::withTrashed()->findOrFail($id);
+        $admin = Auth::user();
+
+        $request->validate([
+            'status' => 'required|in:draft,schedule,published',
+            'scheduled_at' => 'nullable|date|required_if:status,schedule',
+        ]);
+
+        $updateData = [
+            'status' => $request->status,
+            'published_at' => $request->status === 'published' ? Carbon::now() : $media->published_at,
+            'scheduled_at' => $request->status === 'schedule' ? $request->scheduled_at : null,
+            'modified_by' => $admin->id,
+            'modified_by_username' => $admin->username,
+        ];
+
+        $media->update($updateData);
+
+        return response()->json([
+            'message' => 'Media status updated successfully',
+            'data' => $media
+        ]);
     }
 
-    //Soft delete 
+    // -------------------------
+    // Soft delete / archive media
+    // -------------------------
     public function destroy($id)
     {
         $media = Media::findOrFail($id);
-        $media->delete();
+        $media->delete(); // soft delete
 
-        return response()->json(['message' => 'Delee Successfully']);
+        return response()->json([
+            'message' => 'Media archived successfully'
+        ]);
     }
 
+    // -------------------------
+    // Restore archived media
+    // -------------------------
+    public function restore($id)
+    {
+        $media = Media::onlyTrashed()->findOrFail($id);
+        $media->restore();
+
+        return response()->json([
+            'message' => 'Media restored successfully',
+            'data' => $media
+        ]);
+    }
+
+    // -------------------------
+    // Permanently delete media
+    // -------------------------
+    public function forceDelete($id)
+    {
+        $media = Media::onlyTrashed()->findOrFail($id);
+        $media->forceDelete();
+
+        return response()->json([
+            'message' => 'Media permanently deleted'
+        ]);
+    }
 }

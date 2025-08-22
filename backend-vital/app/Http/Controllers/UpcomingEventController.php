@@ -2,57 +2,86 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\UpcomingEvent;
 use Illuminate\Http\Request;
-use App\Model\Media;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class UpcomingEventController extends Controller
 {
-    public function index()
+    // -------------------------
+    // List events
+    // -------------------------
+    public function index(Request $request)
     {
+        $user = $request->user();
+        $now = now();
 
+        if ($user && $user->role === 'admin') {
+            $events = UpcomingEvent::orderBy('end_date', 'asc')->get();
+
+        // Add a computed "status" field: 'upcoming' or 'expired'
+            // $events->transform(function ($event) use ($now) {
+            //     $event->status = $event->end_date < $now ? 'upcoming' : 'expired';
+            //     return $event;
+            // });
+
+            return response()->json($events);
+        }
+
+        // // Normal user: only active events
+        $events = UpcomingEvent::where('end_date', '>=', $now)
+            ->orderBy('start_date', 'asc')
+            ->get(); // all columns included
+
+        return response()->json($events);
     }
-    
-    public function show()
-    {
 
+    // -------------------------
+    // Create event
+    // -------------------------
+    public function store(Request $request)
+    {
+        $event = UpcomingEvent::create([
+            'title'           => $request->title,
+            'detail'          => $request->detail,
+            'start_date'      => $request->start_date,
+            'end_date'        => $request->end_date,
+            'location'        => $request->location,
+            'num_participate' => $request->num_participate,
+            'organizer'       => $request->organizer,
+            'contact'         => $request->contact,
+            'media_id'        => $request->media_id,
+        ]);
+
+        return response()->json([
+            'message' => 'Event created successfully',
+            'data'    => $event
+        ], 201);
     }
 
-    public function store()
+    // -------------------------
+    // Update event
+    // -------------------------
+    public function update(Request $request, UpcomingEvent $event)
     {
-
-    }
-
-    public function update(Request $requst, $id)
-    {
-        $event = Event::findOrFail($id);
-        $event->fill($request->only([
-            'title', 
-            'detail', 
-            'start_date', 
+        $event->update($request->only([
+            'title',
+            'detail',
+            'start_date',
             'end_date',
             'location',
-            'num_paticipate',
-            'contact',
+            'num_participate',
             'organizer',
-            'timeline',
-        ]))
-        $event->update(array_merge($request->all(), [
-            'modified_by' => auth()->id(),
-            'modified_by_username' => auth()->user()->username,
-        ]))
+            'contact',
+            'media_id'
+        ]));
 
-        $event->save();
+        $event->refresh();
 
-        return response()->json(['message' => 'Update successfully']);
+        return response()->json([
+            'message' => 'Event updated successfully',
+            'data'    => $event
+        ]);
     }
-
-    public function destroy($id)
-    {
-        $event = Event::findOrFail($id);
-        $event->delete();
-
-        return response()->json(['message' => 'Delete successfully']);
-    }
-    
 }

@@ -2,37 +2,46 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\MediaLink;
 use Illuminate\Http\Request;
-use App\Model\Media;
-use Illuminate\Support\Facades\Auth;
 
 class MediaLinkController extends Controller
 {
     public function index()
     {
-        return MediaLink::with(['created_by', 'modified_by'])->get();
-    }
-
-    public function show($id)
-    {
-        //
+        $links = MediaLink::with('media')->latest()->get();
+        return response()->json($links);
     }
 
     public function store(Request $request)
     {
-        //
+        $link = MediaLink::create($request->only(['media_id', 'url']));
+
+        return response()->json([
+            'message' => 'Link created successfully',
+            'data' => $link
+        ]);
     }
 
-    public function update(Request $request, $id)
+    public function show(MediaLink $mediaLink)
     {
-        //
+        return response()->json($mediaLink->load('media'));
     }
 
-    public function destroy($id)
+    public function update(Request $request, MediaLink $mediaLink)
     {
-        $data = MediaLink::findOrFail($id);
-        $data->delete();
+        $mediaLink->update($request->only(['url']));
+        return response()->json([
+            'message' => 'Link updated successfully',
+            'data' => $mediaLink
+        ]);
+    }
 
-        return response()->json(['message' => 'Delete Successfully']);
+    public function destroy(MediaLink $mediaLink)
+    {
+        $mediaLink->delete();
+        return response()->json([
+            'message' => 'Link deleted successfully'
+        ]);
     }
 }

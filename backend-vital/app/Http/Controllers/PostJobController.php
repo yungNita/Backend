@@ -10,6 +10,7 @@ class PostJobController extends Controller
 {
     /**
      * Display a listing of the resource.
+     * FOR ADMIN ONLY!
      */
     public function index()
     {
@@ -22,12 +23,21 @@ class PostJobController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Display only is_available = true
+     * FOR PUBLIC USER
      */
-    // public function create()
-    // {
-    //     //
-    // }
+    public function display()
+    {
+        // Only jobs that are available
+        $jobs = Post_Job::where('is_available', true)
+            ->where(function($q) {
+                $q->whereNull('deadline')  //display both open until filled and with deadline
+                ->orWhere('deadline', '<', now());
+            })
+            ->get();
+
+        return response()->json($jobs);
+    }
 
     /**
      * Store a newly created resource in storage.
@@ -72,14 +82,6 @@ class PostJobController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    // public function edit(string $id)
-    // {
-    //     //
-    // }
-
-    /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, string $job_id)
@@ -108,8 +110,8 @@ class PostJobController extends Controller
                 'scheduled_at',
                 'job_updated_by',
                 'status',
-                'scheduled_at',
-                'closed_at'
+                'closed_at',
+                'is_available'
             ]));
             return response()->json([
                 'status' => 'success',
@@ -170,6 +172,7 @@ class PostJobController extends Controller
         }
         else {
             $job->status = 'published';
+            $job->is_available = true; // Set is_available to true when job is published
             $job->published_at = now();
             $job->save();
             return response()->json([
@@ -197,7 +200,7 @@ class PostJobController extends Controller
 
         // Set scheduled_at in UTC and status to 'scheduled'
         $job->status = 'scheduled';
-        $job->scheduled_at = Carbon::parse($request->input('scheduled_at'), 'UTC');
+        $job->scheduled_at = $request->input('scheduled_at');
         $job->published_at = null; // leave null until scheduler runs
         $job->save();
 
@@ -218,6 +221,7 @@ class PostJobController extends Controller
         }
         else {
             $job->status = 'closed';
+            $job->is_available = false; // Set is_available to false when job is closed
             $job->closed_at = now();
             $job->save();
             return response()->json([

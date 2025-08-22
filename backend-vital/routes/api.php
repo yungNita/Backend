@@ -66,7 +66,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::resource('post-jobs', PostJobController::class);
         Route::get('post-jobs/{job_id}/restore', [PostJobController::class, 'restore'])->name('post-jobs.restore');
         Route::get('post-jobs/{job_id}/publish', [PostJobController::class, 'publish'])->name('post-jobs.publish');
-        Route::post('post-jobs/{job_id}/schedule', [PostJobController::class, 'schedule'])->name('post-jobs.schedule');
+        Route::post('post-jobs/{job_id}/schedule-post', [PostJobController::class, 'schedule'])->name('post-jobs.schedule');
         Route::get('post-jobs/{job_id}/close', [PostJobController::class, 'close'])->name('post-jobs.close');
 });
 
@@ -74,5 +74,5 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::post('project-proposals', [ProjectProposalController::class, 'store']);
 Route::post('visit-requests', [VisitRequestController::class, 'store']);
 Route::post('contact-messages', [ContactMessageController::class, 'store']);
-
+Route::get('post-jobs/user-display', [PostJobController::class, 'display'])->name('post-jobs.display');
 

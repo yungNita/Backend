@@ -16,7 +16,6 @@ return new class extends Migration
             $table->string('position');
             $table->string('salary');
             $table->string('location');
-            $table->string('deadline');
             $table->enum('working_shift', ['full-time', 'part-time-morning', 'part-time-afternoon', 'remote'])->default('full-time');
             $table->longText('job_detail');
             $table->enum('employment_type', ['employee', 'intern', 'volunteer', 'young professional'])->default('employee');
@@ -29,7 +28,8 @@ return new class extends Migration
             $table->enum('status', ['draft', 'published', 'scheduled', 'closed'])->default('draft');
             $table->dateTime('scheduled_at')->nullable();
             $table->dateTime('closed_at')->nullable();
-
+            $table->boolean('is_available')->default(false);
+            $table->dateTime('deadline')->nullable();
             $table->timestamps();
         });
     }

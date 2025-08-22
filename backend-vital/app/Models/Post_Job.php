@@ -32,8 +32,8 @@ class Post_Job extends Model
         'scheduled_at',
         'job_updated_by',
         'status',
-        'scheduled_at',
         'closed_at',
+        'is_available'
     ];
 
     public static function boot()

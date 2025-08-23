@@ -2,9 +2,9 @@
 
 namespace App\Enums\Media;
 
-enum MediaStatus:string 
+enum MediaStatus: string 
 {
-    case DRAFF = "draft";
+    case DRAFT = "draft";
     case SCHEDULE = "schedule";
     case PUBLISHED = "published";
     case ARCHIVED = "archived";

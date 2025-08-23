@@ -15,7 +15,7 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'username' => 'required|string|max:255',
             'company_id' => 'required|string|unique:users,company_id',
             'password' => [
                 'required',
@@ -30,7 +30,7 @@ class AuthController extends Controller
         ]);
 
         $user = User::create([
-            'name' => $request->name,
+            'username' => $request->username,
             'company_id' => $request->company_id,
             'password' => Hash::make($request->password),
             'role' => $request->role ?? 'staff',

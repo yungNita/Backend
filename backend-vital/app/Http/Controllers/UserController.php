@@ -15,7 +15,7 @@ class UserController extends Controller
         return response()->json($users);
     }
 
-    // Show user detail
+    // Show user detail by id
     public function show($id)
     {
         $user = User::findOrFail($id);
@@ -26,7 +26,7 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'username' => 'required|string|max:255',
             'company_id' => 'required|string|unique:users,company_id',
             'password' => [
                 'required',
@@ -41,7 +41,7 @@ class UserController extends Controller
         ]);
 
         $user = User::create([
-            'name' => $request->name,
+            'username' => $request->username,
             'company_id' => $request->company_id,
             'password' => Hash::make($request->password),
             'role' => $request->role,
@@ -56,7 +56,7 @@ class UserController extends Controller
         $user = User::findOrFail($id);
 
         $request->validate([
-            'name' => 'sometimes|string|max:255',
+            'username' => 'sometimes|string|max:255',
             'company_id' => 'sometimes|string|unique:users,company_id,' . $user->id,
             'password' => [
                 'sometimes',
@@ -71,7 +71,7 @@ class UserController extends Controller
         ]);
 
         $user->update([
-            'name' => $request->name ?? $user->name,
+            'username' => $request->username ?? $user->username,
             'company_id' => $request->company_id ?? $user->company_id,
             'password' => $request->password ? Hash::make($request->password) : $user->password,
             'role' => $request->role ?? $user->role,

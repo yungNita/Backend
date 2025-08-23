@@ -13,7 +13,7 @@ class User extends Authenticatable
     use HasFactory, Notifiable, HasApiTokens;
 
     protected $fillable = [
-        'name',
+        'username',
         'company_id',
         'password',
         'role',
@@ -23,4 +23,9 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
+    public function media()
+    {
+        return $this->hasMany(Media::class);
+    }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Enums;
 
-enum MediaStatus:string 
+enum ApplcationStatus:string 
 {
     case UNDER_REVIEW = "under_review";
     case INTERVIEW = "interview";

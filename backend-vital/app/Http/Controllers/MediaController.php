@@ -13,13 +13,21 @@ use Illuminate\Support\Facades\Storage;
 class MediaController extends Controller
 {
     // -------------------------
-    // List active media
+    // Get article wiht cover image
     // -------------------------
     public function index()
     {
-        $media = Media::latest()->get();
-        return response()->json($media);
+        return Media::with(['images' => fn($q) => $q->where('is_cover', true)])->get();
     }
+
+    // -------------------------
+    // List active media
+    // -------------------------
+    // public function index()
+    // {
+    //     // $media = Media::latest()->get();
+    //     return Media::with('images')->latest()->get();
+    // }
 
     // -------------------------
     // List archived media
@@ -93,7 +101,7 @@ class MediaController extends Controller
     }
 
     // -------------------------
-    // Update media and optionally add more images
+    // Update media 
     // -------------------------
     public function update(Request $request, $id)
     {

@@ -9,9 +9,9 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\StaffDashboardController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\UpcomingEventController;
-use App\Http\Controllers\MediaArticleController;
+// use App\Http\Controllers\MediaArticleController;
 use App\Http\Controllers\MediaImageController;
-use App\Http\Controllers\MediaLinkController;
+// use App\Http\Controllers\MediaLinkController;
 use App\Http\Controllers\ApplicationController;
 
 
@@ -90,11 +90,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/media/{id}/force-delete', [MediaController::class, 'forceDelete']);
 
             
-        // store, update, updateStatus, destroy
-        // Route::apiResource('events', UpcomingEventController::class)->except(['index', 'show']);
-        Route::apiResource('articles', MediaArticleController::class)->except(['index', 'show']);
-        Route::apiResource('images', MediaImageController::class)->except(['index', 'show']);
-
 
         // --------------------------  Upcoming Event  --------------------------
         Route::post('/events', [UpcomingEventController::class, 'store']);
@@ -103,18 +98,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
         // --------------------------  Media Image  --------------------------
-        // Route::get('/media/{mediaId}/images', [MediaImageController::class, 'index']);
-        // Route::post('/media/{mediaId}/images', [MediaImageController::class, 'store']);
-        // Route::delete('/media/images/{id}', [MediaImageController::class, 'destroy']);
-
-        Route::post('/media-images', [MediaImageController::class, 'store']);
-
-
-        // Route::get('/media/{mediaId}/images', [MediaImageController::class, 'index']);
-        // Route::post('/media/{mediaId}/images', [MediaImageController::class, 'store']); // upload multiple
-        // Route::delete('/media/image/{id}', [MediaImageController::class, 'destroy']); // soft delete
-        // Route::post('/media/image/{id}/restore', [MediaImageController::class, 'restore']);
-        // Route::delete('/media/image/{id}/force-delete', [MediaImageController::class, 'forceDelete']);
+        Route::post('/images', [MediaImageController::class, 'store']);
+        // Route::patch('/media-images/{id}', [MediaImageController::class, 'update']);
+        // Route::delete('/media-images/{id}', [MediaImageController::class, 'destroy']);
+        // Route::post('/media-images/{id}/restore', [MediaImageController::class, 'restore']);
+        // Route::delete('/media-images/{id}/force-delete', [MediaImageController::class, 'forceDelete']);
+        // Route::post('/media-images/{id}/set-cover', [MediaImageController::class, 'setCover']);
 
 
         // --------------------------  Application  --------------------------
@@ -126,10 +115,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
 });
 
-    Route::apiResource('events', UpcomingEventController::class)->only(['index', 'show']);
-    Route::apiResource('articles', MediaArticleController::class)->only(['index', 'show']);
-    Route::apiResource('images', MediaImageController::class)->only(['index', 'show']);
-    Route::apiResource('links', MediaLinkController::class)->only(['index', 'show']);
+    // Route::apiResource('events', UpcomingEventController::class)->only(['index', 'show']);
+    // Route::apiResource('articles', MediaArticleController::class)->only(['index', 'show']);
+    // Route::apiResource('images', MediaImageController::class)->only(['index', 'show']);
+    // Route::apiResource('links', MediaLinkController::class)->only(['index', 'show']);
 
 
     // --------------------------  Application  --------------------------
@@ -143,6 +132,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('post-jobs/user-display', [PostJobController::class, 'display'])->name('post-jobs.display');
 
 
+
+Route::post('/test-media', function() {
+    return response()->json(['ok' => true]);
+});
 
 
 

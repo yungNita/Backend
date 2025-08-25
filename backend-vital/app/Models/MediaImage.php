@@ -12,18 +12,11 @@ class MediaImage extends Model
     protected $fillable = [
         'media_id',
         'path',
+        'is_cover',
     ];
 
-    protected $dates = ['deleted_at']
-    
     public function media()
     {
         return $this->belongsTo(Media::class);
     }
-
-    public function getFullPathAttribute()
-    {
-        return asset('storage/' . $this->path);
-    }
-
 }

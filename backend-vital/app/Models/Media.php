@@ -3,12 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Notifications\Notifiable;
- use Illuminate\Database\Eloquent\SoftDeletes;
-
-namespace App\Models;
-
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Media extends Model
@@ -65,5 +59,10 @@ class Media extends Model
     public function images()
     {
         return $this->hasMany(MediaImage::class, 'media_id');
+    }
+
+    public function coverImage()
+    {
+        return $this->hasOne(MediaImage::class)->where('is_cover', true);
     }
 }

@@ -3,100 +3,139 @@
 namespace App\Http\Controllers;
 
 use App\Models\MediaImage;
-use App\Models\Media;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class MediaImageController extends Controller
 {
     /**
-     * Upload additional images for a media article
+     * Upload multiple images in one request (max 20).
      */
-    // public function store(Request $request)
-    // {
-    //     // $media = Media::findOrFail($mediaId);
-
-    //     $validated = $request->validate([
-    //         'path' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // 5MB max
-    //     ]);
-
-    //     if($request->hasFile('path')){
-    //         $path = $request->file('path')->store('article_img', 'public');
-    //         $validated['path'] = $path;
-    //     }
-
-    //     $mediaImages = MediaImage::create([
-    //         'media_id' => $request->media_id,
-    //         'path' => $validated['path'],
-    //     ]);
-
-    //     // if ($request->hasFile('images')) {
-    //     //     foreach ($request->file('images') as $image) {
-    //     //         $path = $image->store('media_images', 'public');
-    //     //         $mediaImage = MediaImage::create([
-    //     //             'media_id' => $media->id,
-    //     //             'path' => $path,
-    //     //         ]);
-    //     //         $uploadedImages[] = $mediaImage;
-    //     //     }
-    //     // }
-
-    //     return response()->json([
-    //         'message' => 'Images uploaded successfully',
-    //         'images' => $mediaImages
-    //     ]);
-    // }
-
     public function store(Request $request)
-{
-    $validated = $request->validate([
-        'path' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // 5MB max
-    ]);
-
-   if($request->hasFile('path')){
-            $path = $request->file('path')->store('article_img', 'public');
-            $validated['path'] = $path;
-    }
-
-    $mediaImages = MediaImage::create([
-        'media_id' => $request->media_id,
-        'path' => $path,
-    ]);
-
-    return response()->json([
-        'message' => 'Images uploaded successfully',
-        'images' => $mediaImages
-    ]);
-}
-
-
-    /**
-     * Delete a specific image
-     */
-    public function destroy($id)
     {
-        $image = MediaImage::findOrFail($id);
+        $validated = $request->validate([
+            'media_id'     => 'required|exists:media,id',
+            'images'       => 'required|array|max:20', // max 20 images per request
+            'images.*'     => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'is_cover'     => 'sometimes|boolean', // optional: set one as cover
+        ]);
 
-        // Optionally delete file from storage
-        if (\Storage::disk('public')->exists($image->path)) {
-            \Storage::disk('public')->delete($image->path);
+        $createdImages = [];
+
+        foreach ($request->file('images') as $index => $file) {
+            $path = $file->store('media_images', 'public');
+
+            // handle cover logic (if first image + is_cover = true OR explicitly set)
+            $isCover = false;
+            if ($request->boolean('is_cover') && $index === 0) {
+                MediaImage::where('media_id', $validated['media_id'])
+                    ->update(['is_cover' => false]);
+                $isCover = true;
+            }
+
+            $image = MediaImage::create([
+                'media_id' => $validated['media_id'],
+                'path'     => $path,
+                'is_cover' => $isCover,
+            ]);
+
+            $createdImages[] = [
+                'id'       => $image->id,
+                'url'      => Storage::url($image->path),
+                'is_cover' => $image->is_cover,
+            ];
         }
 
-        $image->delete();
-
         return response()->json([
-            'message' => 'Image deleted successfully'
+            'success' => true,
+            'images'  => $createdImages,
         ]);
     }
 
     /**
-     * Get all images for a media article
+     * Replace detail/cover image (single file update).
      */
-    public function index($mediaId)
+    public function update(Request $request, $id)
     {
-        $media = Media::findOrFail($mediaId);
+        $image = MediaImage::findOrFail($id);
 
-        $images = $media->images; 
+        $validated = $request->validate([
+            'image'    => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'is_cover' => 'sometimes|boolean',
+        ]);
 
-        return response()->json($images);
+        // delete old file
+        Storage::disk('public')->delete($image->path);
+
+        // store new one
+        $path = $request->file('image')->store('media_images', 'public');
+
+        if ($request->boolean('is_cover')) {
+            MediaImage::where('media_id', $image->media_id)->update(['is_cover' => false]);
+        }
+
+        $image->update([
+            'path'     => $path,
+            'is_cover' => $request->boolean('is_cover', $image->is_cover),
+        ]);
+
+        return response()->json([
+            'id'       => $image->id,
+            'url'      => Storage::url($image->path),
+            'is_cover' => $image->is_cover,
+        ]);
+    }
+
+    /**
+     * Set cover explicitly.
+     */
+    public function setCover($id)
+    {
+        $image = MediaImage::findOrFail($id);
+
+        MediaImage::where('media_id', $image->media_id)->update(['is_cover' => false]);
+
+        $image->update(['is_cover' => true]);
+
+        return response()->json([
+            'success'     => true,
+            'cover_image' => Storage::url($image->path),
+        ]);
+    }
+
+    /**
+     * Soft delete.
+     */
+    public function destroy($id)
+    {
+        $image = MediaImage::findOrFail($id);
+        $image->delete();
+
+        return response()->json(['success' => true, 'message' => 'Image soft deleted']);
+    }
+
+    /**
+     * Restore deleted image.
+     */
+    public function restore($id)
+    {
+        $image = MediaImage::withTrashed()->findOrFail($id);
+        $image->restore();
+
+        return response()->json(['success' => true, 'message' => 'Image restored']);
+    }
+
+    /**
+     * Permanently delete.
+     */
+    public function forceDelete($id)
+    {
+        $image = MediaImage::withTrashed()->findOrFail($id);
+
+        Storage::disk('public')->delete($image->path);
+
+        $image->forceDelete();
+
+        return response()->json(['success' => true, 'message' => 'Image permanently deleted']);
     }
 }
